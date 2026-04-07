@@ -1,0 +1,182 @@
+<%- include("partials/head", { title: title || "Kategoriya Qapaqları" }) %>
+<body class="hold-transition sidebar-mini layout-fixed layout-footer-fixed">
+  <div class="wrapper">
+    <%- include("partials/sidebar", { active }) %>
+
+    <div class="content-wrapper">
+      <section class="content-header">
+        <div class="container-fluid">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h1 class="font-weight-bold mb-0">Kategoriya Qapaqları</h1>
+              <p class="text-muted small">Ana səhifədə görünəcək dikey qapaqları idarə edin.</p>
+            </div>
+            <button class="btn btn-primary shadow-sm" data-toggle="modal" data-target="#addModal">
+              <i class="fas fa-plus mr-2"></i> Yeni Qapaq
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                  <thead class="bg-light">
+                    <tr>
+                      <th class="border-top-0 text-uppercase small font-weight-bold text-muted">ID</th>
+                      <th class="border-top-0 text-uppercase small font-weight-bold text-muted">Ad</th>
+                      <th class="border-top-0 text-uppercase small font-weight-bold text-muted">Şəkil</th>
+                      <th class="border-top-0 text-uppercase small font-weight-bold text-muted">Hədəf URL</th>
+                      <th class="border-top-0 text-uppercase small font-weight-bold text-muted text-center" style="width: 80px;">Sıra</th>
+                      <th class="border-top-0 text-right" style="width: 150px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (covers && covers.length > 0) { %>
+                      <% covers.forEach(cover => { %>
+                        <tr>
+                          <td class="align-middle text-muted">#<%= cover.id %></td>
+                          <td class="align-middle font-weight-bold"><%= cover.title %></td>
+                          <td class="align-middle">
+                            <% if (cover.image) { %>
+                              <img src="<%= cover.image %>" alt="<%= cover.title %>" class="rounded" style="width:40px; height:60px; object-fit:cover;">
+                            <% } else { %>
+                              <span class="text-muted small">Şəkil yoxdur</span>
+                            <% } %>
+                          </td>
+                          <td class="align-middle text-muted"><%= cover.target_url %></td>
+                          <td class="align-middle text-center"><span class="badge badge-light border"><%= cover.sort_order %></span></td>
+                          <td class="align-middle text-right">
+                            <button class="btn btn-sm btn-outline-secondary mr-2" data-toggle="modal" data-target="#editModal<%= cover.id %>">
+                              <i class="fas fa-pen"></i>
+                            </button>
+                            <form action="/admin/covers/<%= cover.id %>/delete" method="POST" class="d-inline">
+                              <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Silmək istədiyinizə əminsiniz?');">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </form>
+                          </td>
+                        </tr>
+
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editModal<%= cover.id %>" tabindex="-1">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <form action="/admin/covers/<%= cover.id %>/update" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow">
+                              <div class="modal-header bg-light border-bottom-0">
+                                <h5 class="modal-title font-weight-bold"><i class="fas fa-edit text-primary mr-2"></i>Qapağı Redaktə Et</h5>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                              </div>
+                              <div class="modal-body">
+                                <div class="form-group mb-3">
+                                  <label class="font-weight-bold small text-muted text-uppercase">Ad</label>
+                                  <input class="form-control bg-light" type="text" name="title" value="<%= cover.title %>" required />
+                                </div>
+                                <div class="form-group mb-3">
+                                  <label class="font-weight-bold small text-muted text-uppercase">Dövlət Şəkli (İstəyə görə URL)</label>
+                                  <input class="form-control bg-light mb-2" type="text" name="image" value="<%= cover.image || '' %>" placeholder="Əgər link ilə yükləyəcəksinizsə..." />
+                                  <label class="font-weight-bold small text-muted text-uppercase" style="display:block; margin-top:10px;">Və ya Kompüterdən Seç</label>
+                                  <input class="form-control-file" type="file" name="imageUpload" accept="image/*" />
+                                </div>
+                                <div class="form-group mb-3">
+                                  <label class="font-weight-bold small text-muted text-uppercase">Hədəf URL (Oyun və ya Kateqoriya)</label>
+                                  <select class="form-control bg-light" name="target_url" required>
+                                    <option value="">Seçim edin...</option>
+                                    <optgroup label="Oyunlar və Məhsullar">
+                                      <% if (typeof products !== 'undefined') { %>
+                                        <% products.forEach(p => { %>
+                                          <option value="/product/<%= p.slug %>" <%= cover.target_url === '/product/' + p.slug ? 'selected' : '' %>>
+                                            <%= p.title %>
+                                          </option>
+                                        <% }) %>
+                                      <% } %>
+                                    </optgroup>
+                                    <optgroup label="Səhifələr (Kateqoriyalar)">
+                                      <option value="/?tab=PlayStation" <%= cover.target_url === '/?tab=PlayStation' ? 'selected' : '' %>>PlayStation</option>
+                                      <option value="/?tab=Xbox" <%= cover.target_url === '/?tab=Xbox' ? 'selected' : '' %>>Xbox</option>
+                                      <option value="/?tab=Oyun%20Valyutası" <%= cover.target_url === '/?tab=Oyun%20Valyutası' ? 'selected' : '' %>>Oyun Valyutası</option>
+                                      <option value="/?tab=Servislər" <%= cover.target_url === '/?tab=Servislər' ? 'selected' : '' %>>Servislər</option>
+                                      <option value="/?tab=AllProducts" <%= cover.target_url === '/?tab=AllProducts' ? 'selected' : '' %>>Bütün Məhsullar</option>
+                                    </optgroup>
+                                  </select>
+                                </div>
+                                <div class="form-group mb-0">
+                                  <label class="font-weight-bold small text-muted text-uppercase">Sıra (Sort Order)</label>
+                                  <input class="form-control bg-light" type="number" name="sort_order" value="<%= cover.sort_order %>" />
+                                </div>
+                              </div>
+                              <div class="modal-footer border-top-0 bg-light">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Ləğv et</button>
+                                <button type="submit" class="btn btn-primary px-4">Yadda Saxla</button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                          <i class="fas fa-folder-open fa-2x mb-3 opacity-50"></i>
+                          <p class="mb-0">Hələ heç bir qapaq əlavə edilməyib.</p>
+                        </td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+      </section>
+    </div> <!-- content-wrapper -->
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <form action="/admin/covers" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow">
+          <div class="modal-header bg-light border-bottom-0">
+            <h5 class="modal-title font-weight-bold"><i class="fas fa-plus-circle text-primary mr-2"></i>Yeni Qapaq</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group mb-3">
+              <label class="font-weight-bold small text-muted text-uppercase">Ad</label>
+              <input class="form-control bg-light" type="text" name="title" required placeholder="Sony PlayStation Məhsulları" />
+            </div>
+            <div class="form-group mb-3">
+              <label class="font-weight-bold small text-muted text-uppercase">Dövlət Şəkli (İstəyə görə URL)</label>
+              <input class="form-control bg-light mb-2" type="text" name="image" placeholder="Əgər link ilə yükləyəcəksinizsə..." />
+              <label class="font-weight-bold small text-muted text-uppercase" style="display:block; margin-top:10px;">Və ya Kompüterdən Yüklə</label>
+              <input class="form-control-file" type="file" name="imageUpload" accept="image/*" />
+            </div>
+            <div class="form-group mb-3">
+              <label class="font-weight-bold small text-muted text-uppercase">Hədəf URL (Oyun və ya Kateqoriya)</label>
+              <select class="form-control bg-light" name="target_url" required>
+                <option value="" selected>Seçim edin...</option>
+                <optgroup label="Oyunlar və Məhsullar">
+                  <% if (typeof products !== 'undefined') { %>
+                    <% products.forEach(p => { %>
+                      <option value="/product/<%= p.slug %>"><%= p.title %></option>
+                    <% }) %>
+                  <% } %>
+                </optgroup>
+                <optgroup label="Səhifələr (Kateqoriyalar)">
+                  <option value="/?tab=PlayStation">PlayStation</option>
+                  <option value="/?tab=Xbox">Xbox</option>
+                  <option value="/?tab=Oyun%20Valyutası">Oyun Valyutası</option>
+                  <option value="/?tab=Servislər">Servislər</option>
+                  <option value="/?tab=AllProducts">Bütün Məhsullar</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="form-group mb-0">
+              <label class="font-weight-bold small text-muted text-uppercase">Sıra (Sort Order)</label>
+              <input class="form-control bg-light" type="number" name="sort_order" value="0" />
+            </div>
+          </div>
+          <div class="modal-footer border-top-0 bg-light">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Ləğv et</button>
+            <button type="submit" class="btn btn-primary px-4">Yarat</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <%- include("partials/footer") %>

@@ -1,0 +1,522 @@
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { mapProductRow, queryStoreRows } from "../lib/storeDb";
+
+defineProps({
+  activePrimaryTab: {
+    type: String,
+    default: "",
+  },
+});
+
+const emit = defineEmits(["go-home", "select-primary"]);
+
+const mobileOpen = ref(false);
+const languageOpen = ref(false);
+const isDarkMode = ref(false);
+const cartOpen = ref(false);
+const searchOpen = ref(false);
+const searchQuery = ref("");
+const navReady = ref(false);
+const cartItems = ref([]);
+const isScrolled = ref(false);
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 40;
+};
+
+const primaryLinks = ref([]);
+const secondaryLinks = ref([]);
+const languages = ref([]);
+const currentLanguage = ref({ label: "AZ", name: "Azərbaycan", flag: "az" });
+const fallbackSearchSuggestions = [
+  "resident evil",
+  "call of duty",
+  "abunəlik",
+  "assassin's creed",
+  "stalker 2",
+  "gta 5",
+];
+const searchSuggestions = ref(fallbackSearchSuggestions);
+const searchPublishers = [
+  "EA Swiss Sarl",
+  "Activision Blizzard Int'l BV",
+  "Sony Interactive Entertainment Europe",
+  "UBISOFT ENTERTAINMENT SA",
+  "WARNER BROS. INTERACTIVE",
+  "CE EUROPE LIMITED",
+];
+const fallbackSearchResults = [
+  {
+    title: "Call of Duty: Modern Warfare Remastered",
+    price: "585 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "Resident Evil Requiem",
+    price: "10 170 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "Resident Evil 2",
+    price: "4 890 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "Assassin's Creed Unity",
+    price: "5 850 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "The Witcher 3: Wild Hunt",
+    price: "175 ₼",
+    discount: "-80%",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+];
+const searchResults = ref(fallbackSearchResults);
+
+const icons = {
+  playstation:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.4 3.2v9.6c0 .6-.2 1-.7 1.2l-1.8.9V5.3c0-1 .7-1.6 1.6-2.1l.9-.4Zm2.1 3.4c3 .9 5 2 5 3.3 0 1-.7 1.8-2.1 2.4l-2.9 1V9.7c0-.6-.1-1-.5-1.2-.4-.3-1-.6-1.6-.8V3.8l2.1.8Zm4.4 8.8-3.8 1.4v-1.9l2.7-1c.7-.3 1.1-.2 1.1.4v1.1Zm-10.6-.7 4.8-1.7v2L8 16.3c-1.3.5-2.6.3-3.2-.2-.8-.6-.6-1 .6-1.4Zm5.2 2.2v2l-2.7 1c-1.2.4-2.2.4-2.8.1-.7-.4-.5-.9.4-1.2l5.1-1.9Z"/></svg>',
+  xbox:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c2.2 0 4.2.6 6 1.7-1.4.2-2.9.9-4.2 2.1-.7-.7-1.2-1-1.8-1s-1.1.3-1.8 1C8.9 5.1 7.4 4.4 6 4.2A10.9 10.9 0 0 1 12 2.5Zm-7 4.2c1.8 0 4.3 1.8 6 4.3l-4.8 8A9.5 9.5 0 0 1 5 6.7Zm14 0A9.5 9.5 0 0 1 17.8 19L13 11c1.7-2.5 4.2-4.3 6-4.3Zm-7 5.8 4.9 8c-1.4.6-3 .9-4.9.9s-3.5-.3-4.9-1l4.9-8Z"/></svg>',
+  services:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a2 2 0 0 1 2 2v14l-3-2.1L12 19l-4-2.1L5 19V5a2 2 0 0 1 2-2Zm1 4v2h8V7H8Zm0 4v2h5v-2H8Z"/></svg>',
+  coins:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3Zm-8 5.6c1.6 1.2 4.6 2 8 2s6.4-.8 8-2v2.8c0 1.7-3.6 3-8 3s-8-1.3-8-3V9.6Zm0 5.4c1.6 1.2 4.6 2 8 2s6.4-.8 8-2v2c0 1.7-3.6 3-8 3s-8-1.3-8-3v-2Z"/></svg>',
+  search:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm8.9 11.5 1.6 1.6-1.4 1.4-1.6-1.6-2.4-2.4 1.4-1.4 2.4 2.4Z"/></svg>',
+  cart:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h14l-1.6 8.4a2 2 0 0 1-2 1.6H10a2 2 0 0 1-2-1.5L6.2 4H3V2h4.7L8.4 6H19l.4-1Zm3 13a1.8 1.8 0 1 1 0 3.5A1.8 1.8 0 0 1 10 18Zm7 0a1.8 1.8 0 1 1 0 3.5 1.8 1.8 0 0 1 0-3.5Z"/></svg>',
+  globe:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Zm5.7 8h-3a15.5 15.5 0 0 0-1.2-5A7 7 0 0 1 17.7 11Zm-5.7 8c.9 0 2.2-2.1 2.7-6H9.3c.5 3.9 1.8 6 2.7 6Zm-2.7-8h5.4c-.5-3.9-1.8-6-2.7-6s-2.2 2.1-2.7 6ZM6.5 6A15.5 15.5 0 0 0 5.3 11h3a15.5 15.5 0 0 1 1.2-5Zm-1.2 7A15.5 15.5 0 0 0 6.5 18a15.5 15.5 0 0 1 1.2-5h-3Zm8.2 5a15.5 15.5 0 0 0 1.2-5h3a7 7 0 0 1-4.2 5Z"/></svg>',
+  chevron:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5z"/></svg>',
+  menu:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v2H4V7Zm0 8v-2h16v2H4Z"/></svg>',
+};
+
+const icon = (name) => icons[name] || "";
+const flagUrl = (code) => `https://hatscripts.github.io/circle-flags/flags/${code}.svg`;
+const activeLanguageLabel = computed(() => currentLanguage.value.label);
+const normalizedQuery = computed(() => searchQuery.value.trim().toLowerCase());
+const filteredSuggestions = computed(() => {
+  if (!normalizedQuery.value) return [];
+  return searchSuggestions.value.filter((item) => item.toLowerCase().includes(normalizedQuery.value));
+});
+const filteredResults = computed(() => {
+  if (!normalizedQuery.value) return [];
+  return searchResults.value.filter((item) => item.title.toLowerCase().includes(normalizedQuery.value));
+});
+const cartSubtotal = computed(() =>
+  cartItems.value.reduce((sum, item) => sum + Number(item.price_current || 0), 0).toLocaleString("az-AZ"),
+);
+let themeTransitionTimer;
+
+const selectLanguage = (language) => {
+  currentLanguage.value = language;
+  languageOpen.value = false;
+};
+
+const rowsFromStatement = (db, query) => {
+  const result = db.exec(query)[0];
+  if (!result) return [];
+  return result.values.map((row) =>
+    Object.fromEntries(result.columns.map((column, index) => [column, row[index]])),
+  );
+};
+
+const loadNavigation = async () => {
+  const SQL = await window.initSqlJs({
+    locateFile: (file) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`,
+  });
+  const response = await fetch("/navigation.db");
+  const buffer = await response.arrayBuffer();
+  const db = new SQL.Database(new Uint8Array(buffer));
+
+  primaryLinks.value = rowsFromStatement(
+    db,
+    "SELECT label, icon FROM nav_primary ORDER BY sort_order ASC",
+  );
+  secondaryLinks.value = rowsFromStatement(
+    db,
+    "SELECT label, active FROM nav_secondary ORDER BY sort_order ASC",
+  ).map((item) => ({ ...item, active: Boolean(item.active) }));
+  languages.value = rowsFromStatement(
+    db,
+    "SELECT label, name, flag, is_default FROM nav_languages ORDER BY sort_order ASC",
+  ).map((item) => ({ ...item, is_default: Boolean(item.is_default) }));
+
+  currentLanguage.value =
+    languages.value.find((item) => item.is_default) || languages.value[0] || currentLanguage.value;
+  navReady.value = true;
+};
+
+const applyTheme = (theme) => {
+  document.body.classList.remove("theme-sweep-light", "theme-sweep-dark");
+  document.body.classList.add(theme === "dark" ? "theme-sweep-dark" : "theme-sweep-light");
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("digimax-theme", theme);
+  isDarkMode.value = theme === "dark";
+
+  clearTimeout(themeTransitionTimer);
+  themeTransitionTimer = window.setTimeout(() => {
+    document.body.classList.remove("theme-sweep-light", "theme-sweep-dark");
+  }, 900);
+};
+
+const handleThemeChange = (event) => {
+  applyTheme(event.target.checked ? "dark" : "light");
+};
+
+const toggleTheme = () => {
+  applyTheme(isDarkMode.value ? "light" : "dark");
+};
+
+const openSearch = () => {
+  searchOpen.value = true;
+  requestAnimationFrame(() => {
+    document.querySelector(".search-overlay__input")?.focus();
+  });
+};
+
+const closeSearch = () => {
+  searchOpen.value = false;
+};
+
+const openCart = () => {
+  cartOpen.value = true;
+};
+
+const closeCart = () => {
+  cartOpen.value = false;
+};
+
+const selectSuggestion = (term) => {
+  searchQuery.value = term;
+};
+
+const selectPrimaryLink = (label) => {
+  emit("select-primary", label);
+};
+
+const goHome = () => {
+  emit("go-home");
+};
+
+const handleKeydown = (event) => {
+  if (event.key === "Escape") {
+    closeSearch();
+    closeCart();
+    languageOpen.value = false;
+  }
+};
+
+const handleWindowClick = (event) => {
+  if (!event.target.closest(".language-switcher")) {
+    languageOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem("digimax-theme");
+  const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(savedTheme || (preferredDark ? "dark" : "light"));
+  loadNavigation().catch(() => {
+    primaryLinks.value = [
+      { label: "PlayStation", icon: "playstation" },
+      { label: "Xbox", icon: "xbox" },
+      { label: "Servislər", icon: "services" },
+      { label: "Oyun Valyutası", icon: "coins" },
+    ];
+    secondaryLinks.value = [
+      { label: "Endirim", active: true },
+      { label: "Sony Türkiyə Oyun Kataloqu", active: false },
+      { label: "Sony Azərbaycan Oyun Kataloqu", active: false },
+      { label: "Steam", active: false },
+      { label: "Spotify", active: false },
+      { label: "ChatGPT", active: false },
+    ];
+    languages.value = [
+      { label: "AZ", name: "Azərbaycan", flag: "az", is_default: true },
+      { label: "RU", name: "Rus", flag: "ru", is_default: false },
+      { label: "EN", name: "English", flag: "gb", is_default: false },
+      { label: "TR", name: "Türkçe", flag: "tr", is_default: false },
+    ];
+    currentLanguage.value = languages.value[0];
+    navReady.value = true;
+  });
+  queryStoreRows(`
+    SELECT *
+    FROM store_products
+    WHERE searchable = 1
+    ORDER BY sort_order ASC
+    LIMIT 12
+  `)
+    .then((rows) => {
+      const products = rows.map(mapProductRow);
+      searchResults.value = products;
+      searchSuggestions.value = products.map((item) => item.title.toLowerCase()).slice(0, 8);
+    })
+    .catch(() => {
+      searchResults.value = fallbackSearchResults;
+      searchSuggestions.value = fallbackSearchSuggestions;
+    });
+  queryStoreRows(`
+    SELECT *
+    FROM store_products
+    ORDER BY sort_order ASC
+    LIMIT 3
+  `)
+    .then((rows) => {
+      cartItems.value = rows.map(mapProductRow);
+    })
+    .catch(() => {
+      cartItems.value = fallbackSearchResults.slice(0, 3).map((item, index) => ({
+        ...item,
+        price_current: [585, 10170, 4890][index] || 0,
+      }));
+    });
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  handleScroll();
+  window.addEventListener("click", handleWindowClick);
+  window.addEventListener("keydown", handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", handleScroll);
+  window.removeEventListener("click", handleWindowClick);
+  window.removeEventListener("keydown", handleKeydown);
+  clearTimeout(themeTransitionTimer);
+});
+</script>
+
+<template>
+  <header :class="['navbar', { 'is-open': mobileOpen, 'is-scrolled': isScrolled }]">
+    <div class="navbar__top">
+      <div class="navbar__inner mx-auto max-w-[1280px]">
+        <div class="navbar__row">
+          <a href="#" class="brand" @click.prevent="goHome">
+            <span class="brand__media">
+              <img
+                class="brand__logo"
+                src="/digimax_app_logo_icon.png"
+                alt="Digimax logo"
+              />
+            </span>
+          </a>
+
+          <nav :class="['main-links', { 'is-ready': navReady }]" aria-label="Ana gezinme">
+            <a
+              v-for="item in primaryLinks"
+              :key="item.label"
+              href="#"
+              :class="['nav-link', { 'is-active': item.label === activePrimaryTab }]"
+              @click.prevent="selectPrimaryLink(item.label)"
+            >
+              <span v-html="icon(item.icon)"></span>
+              <span>{{ item.label }}</span>
+            </a>
+          </nav>
+
+          <div class="actions">
+            <button class="icon-button mobile-toggle" @click="mobileOpen = !mobileOpen" aria-label="Menyunu aç">
+              <span v-html="icon('menu')"></span>
+            </button>
+            <button
+              class="theme-switch theme-switch--minimal"
+              type="button"
+              :aria-label="isDarkMode ? 'Açıq modaya keç' : 'Dark modaya keç'"
+              @click="toggleTheme"
+            >
+              <iconify-icon
+                :icon="isDarkMode ? 'solar:moon-stars-bold' : 'solar:sun-2-bold'"
+                class="theme-switch__icon"
+                :class="{ 'is-active': true }"
+              ></iconify-icon>
+            </button>
+            <button class="icon-button" aria-label="Axtar" @click="openSearch">
+              <span v-html="icon('search')"></span>
+            </button>
+            <div class="language-switcher">
+              <button
+                class="subscribe"
+                aria-label="Dil seçimi"
+                aria-haspopup="menu"
+                :aria-expanded="languageOpen ? 'true' : 'false'"
+                @click.stop="languageOpen = !languageOpen"
+              >
+                <img
+                  class="language-switcher__flag"
+                  :src="flagUrl(currentLanguage.flag)"
+                  :alt="currentLanguage.name"
+                />
+                <span>{{ activeLanguageLabel }}</span>
+                <span v-html="icon('chevron')"></span>
+              </button>
+
+              <div v-if="languageOpen" class="language-switcher__menu" role="menu">
+                <button
+                  v-for="language in languages"
+                  :key="language.label"
+                  class="language-switcher__option"
+                  :class="{ 'is-active': language.label === currentLanguage.label }"
+                  type="button"
+                  role="menuitemradio"
+                  :aria-checked="language.label === currentLanguage.label ? 'true' : 'false'"
+                  @click="selectLanguage(language)"
+                >
+                  <img
+                    class="language-switcher__flag"
+                    :src="flagUrl(language.flag)"
+                    :alt="language.name"
+                  />
+                  <span>{{ language.label }}</span>
+                </button>
+              </div>
+            </div>
+            <button class="icon-button" aria-label="Səbət" @click="openCart">
+              <span v-html="icon('cart')"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="navbar__sub">
+      <div class="navbar__inner mx-auto max-w-[1280px]">
+        <div class="navbar__row navbar__row--sub">
+          <nav :class="['sub-links', { 'is-ready': navReady }]" aria-label="Alt gezinme">
+            <a
+              v-for="item in secondaryLinks"
+              :key="item.label"
+              href="#"
+              :class="['sub-link', { 'is-active': item.active }]"
+            >
+              {{ item.label }}
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <transition name="search-drop">
+      <div v-if="searchOpen" class="search-overlay" @click.self="closeSearch">
+      <div class="search-overlay__panel">
+        <div class="search-overlay__bar">
+          <div class="search-overlay__scope">Hər yerdə <span v-html="icon('chevron')"></span></div>
+          <input
+            v-model="searchQuery"
+            class="search-overlay__input"
+            type="text"
+            placeholder="Nə axtarmaq istəyirsiniz?"
+          />
+          <button class="search-overlay__voice" type="button" aria-label="Səslə axtar">
+            <iconify-icon icon="solar:microphone-3-bold"></iconify-icon>
+          </button>
+          <button class="search-overlay__submit" type="button" aria-label="Axtar">
+            <span v-html="icon('search')"></span>
+          </button>
+        </div>
+
+        <div class="search-overlay__content">
+          <div class="search-overlay__left">
+            <button
+              v-for="item in filteredSuggestions"
+              :key="item"
+              class="search-overlay__suggestion"
+              type="button"
+              @click="selectSuggestion(item)"
+            >
+              <span v-html="icon('search')"></span>
+              <span>{{ item }}</span>
+            </button>
+
+            <div v-if="!normalizedQuery" class="search-overlay__empty">
+              Axtarışa başlamaq üçün yuxarıdakı sahəyə məhsul, oyun və ya xidmət adı yazın.
+            </div>
+
+            <div v-if="!normalizedQuery" class="search-overlay__meta">
+              <p class="search-overlay__label">Nəşriyyatçılar</p>
+              <div class="search-overlay__tags">
+                <span
+                  v-for="publisher in searchPublishers"
+                  :key="publisher"
+                  class="search-overlay__tag"
+                >
+                  {{ publisher }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-overlay__results">
+            <div v-if="!filteredResults.length && normalizedQuery" class="search-overlay__no-results">
+              Sorğunuza uyğun nəticə tapılmadı.
+            </div>
+
+            <article
+              v-for="result in filteredResults"
+              :key="result.title"
+              class="search-result"
+            >
+              <div
+                class="search-result__thumb"
+                :style="{ backgroundImage: `url(${result.image})` }"
+              ></div>
+
+              <div class="search-result__body">
+                <h3 class="search-result__title">{{ result.title }}</h3>
+                <div class="search-result__pricing">
+                  <span v-if="result.discount" class="search-result__discount">{{ result.discount }}</span>
+                  <span class="search-result__price">{{ result.price }}</span>
+                </div>
+              </div>
+
+              <button class="search-result__action" type="button" aria-label="Məhsula keç">
+                <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+              </button>
+            </article>
+          </div>
+        </div>
+      </div>
+      </div>
+    </transition>
+
+    <transition name="cart-drawer">
+      <div v-if="cartOpen" class="cart-overlay" @click.self="closeCart">
+        <aside class="cart-drawer" aria-label="Səbət paneli">
+          <div class="cart-drawer__header">
+            <div>
+              <p class="cart-drawer__eyebrow">Səbət</p>
+              <h3 class="cart-drawer__title">Seçilmiş məhsullar</h3>
+            </div>
+            <button class="icon-button" type="button" aria-label="Səbəti bağla" @click="closeCart">
+              <iconify-icon icon="solar:close-circle-linear"></iconify-icon>
+            </button>
+          </div>
+
+          <div class="cart-drawer__items">
+            <article v-for="item in cartItems" :key="item.slug || item.title" class="cart-item">
+              <div class="cart-item__thumb" :style="{ backgroundImage: `url(${item.image})` }"></div>
+              <div class="cart-item__body">
+                <strong class="cart-item__title">{{ item.title }}</strong>
+                <span class="cart-item__meta">{{ item.badge || item.platform || "Digital məhsul" }}</span>
+              </div>
+              <strong class="cart-item__price">{{ item.price }}</strong>
+            </article>
+          </div>
+
+          <div class="cart-drawer__footer">
+            <div class="cart-drawer__row">
+              <span>Cəmi</span>
+              <strong>{{ cartSubtotal }} ₼</strong>
+            </div>
+            <button class="cart-drawer__button" type="button">Sifarişi tamamla</button>
+          </div>
+        </aside>
+      </div>
+    </transition>
+  </header>
+</template>

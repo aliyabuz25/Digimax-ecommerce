@@ -1,0 +1,83 @@
+<footer class="site-footer">
+  <div class="footer-trust">
+    <div class="footer-trust__inner container">
+      <div class="trust-item">
+        <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z"/></svg></div>
+        <div class="trust-text">
+          <h4>Güvənli Ödəniş</h4>
+          <p>Məlumatlarınız tam qorunur</p>
+        </div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="trust-text">
+          <h4>Anında Çatdırılma</h4>
+          <p>2 saniyə ərzində poçtunuzda</p>
+        </div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="trust-text">
+          <h4>7/24 Dəstək</h4>
+          <p>Hər an yanınızdayıq</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-main">
+    <div class="footer-grid container">
+      <div class="footer-col brand-col">
+        <img src="/digimax_app_logo_icon.png" alt="Digimax" class="footer-logo" />
+        <p class="footer-bio">
+          Azərbaycanın etibarlı rəqəmsal mağazası. Populyar oyun və xidmətlərə anında giriş təmin edirik.
+        </p>
+        <div class="social-links">
+          <a href="#" class="social-btn"><iconify-icon icon="line-md:instagram"></iconify-icon></a>
+          <a href="#" class="social-btn"><iconify-icon icon="line-md:telegram"></iconify-icon></a>
+          <a href="#" class="social-btn"><iconify-icon icon="line-md:youtube"></iconify-icon></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-title">Kategoriyalar</h3>
+        <ul class="footer-links">
+          <% siteData.footerShopLinks.forEach((link) => { %>
+            <li><a href="#" data-nav-action="<%= link.action %>"><%= link.label %></a></li>
+          <% }) %>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-title">Dəstək</h3>
+        <ul class="footer-links">
+          <% siteData.footerSupportLinks.forEach((link) => { %>
+            <li><a href="<%= link.href %>"><%= link.label %></a></li>
+          <% }) %>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-title">Hüquqi</h3>
+        <ul class="footer-links">
+          <% siteData.footerLegalLinks.forEach((link) => { %>
+            <li><a href="<%= link.href %>"><%= link.label %></a></li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="bottom-inner container">
+      <div class="copyright">© <%= siteData.currentYear %> Digimax Store. Bütün hüquqlar qorunur.</div>
+      <div class="payment-methods">
+        <span class="pm-badge">VISA</span>
+        <span class="pm-badge">MASTERCARD</span>
+        <span class="pm-badge">MAESTRO</span>
+        <span class="pm-badge">APPLE PAY</span>
+        <span class="pm-badge">GOOGLE PAY</span>
+      </div>
+    </div>
+  </div>
+</footer>

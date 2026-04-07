@@ -1,0 +1,95 @@
+<%- include("partials/head", { title }) %>
+<%- include("partials/sidebar", { active }) %>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid"><h1>İstifadəçilər</h1></div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card shadow-sm border-0">
+            <div class="card-header border-bottom">
+              <h3 class="card-title font-weight-bold">Sistemdəki Bütün İstifadəçilər</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-hover">
+                <thead class="bg-light">
+                  <tr>
+                    <th>#ID</th>
+                    <th>Ad Soyad</th>
+                    <th>Email Ünvanı</th>
+                    <th>Rol</th>
+                    <th>Balans</th>
+                    <th>Status</th>
+                    <th>Əməliyyatlar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% users.forEach((user) => { %>
+                    <tr>
+                      <td><span class="text-muted"><%= user.id %></span></td>
+                      <td><strong><%= user.name %></strong></td>
+                      <td><%= user.email %></td>
+                      <td>
+                        <span class="badge <%= user.role === 'admin' ? 'bg-danger' : 'bg-primary' %> px-2 py-1">
+                          <%= user.role === 'admin' ? 'Admin' : 'İstifadəçi' %>
+                        </span>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <span class="font-weight-bold text-success mr-2"><%= user.balance ? user.balance.toFixed(2) : '0.00' %> AZN</span>
+                          <button class="btn btn-xs btn-outline-secondary" type="button" data-toggle="collapse" data-target="#edit-balance-<%= user.id %>">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                        </div>
+                        <div class="collapse mt-2" id="edit-balance-<%= user.id %>">
+                          <form action="/admin/users/<%= user.id %>/update-balance" method="POST" class="input-group input-group-sm" style="width: 150px;">
+                            <input type="number" step="0.01" name="balance" class="form-control" value="<%= user.balance || 0 %>" required>
+                            <div class="input-group-append">
+                              <button class="btn btn-primary" type="submit"><i class="fas fa-check"></i></button>
+                            </div>
+                          </form>
+                        </div>
+                      </td>
+                      <td>
+                        <% if (user.is_banned) { %>
+                          <span class="badge bg-danger">Bloklanıb</span>
+                        <% } else { %>
+                          <span class="badge bg-success">Aktiv</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <div class="btn-group">
+                          <% if (user.is_banned) { %>
+                            <form action="/admin/users/<%= user.id %>/unban" method="POST" class="d-inline" onsubmit="return confirm('İstifadəçinin blokunu açmaq istəyirsiniz?')">
+                              <button type="submit" class="btn btn-sm btn-outline-success mr-2" title="Bloku aç">
+                                <i class="fas fa-unlock"></i>
+                              </button>
+                            </form>
+                          <% } else { %>
+                            <% if (user.role !== 'admin') { %>
+                              <form action="/admin/users/<%= user.id %>/ban" method="POST" class="d-inline" onsubmit="return confirm('İstifadəçini bloklamaq istəyirsiniz?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger mr-2" title="Blokla">
+                                  <i class="fas fa-user-slash"></i>
+                                </button>
+                              </form>
+                            <% } %>
+                          <% } %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include("partials/footer") %>

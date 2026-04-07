@@ -1,0 +1,155 @@
+<div class="col-md-12 mb-3">
+  <h6 class="text-primary font-weight-bold"><i class="fas fa-info-circle mr-2"></i> Əsas Məlumatlar</h6>
+  <hr class="mt-0">
+</div>
+
+<div class="col-md-6 form-group">
+  <label>Məhsulun Adı</label>
+  <input class="form-control" type="text" name="title" value="<%= product.title || '' %>" required placeholder="məs: PS Plus Extra 3 Ay" />
+</div>
+
+<div class="col-md-6 form-group">
+  <label>Slug (URL üçün unikal ad)</label>
+  <input class="form-control" type="text" name="slug" value="<%= product.slug || '' %>" required placeholder="məs: ps-plus-extra-3-ay" />
+</div>
+
+<div class="col-md-4 form-group">
+  <label>Əsas Səhifə (Tab)</label>
+  <select class="form-control" name="tab" required>
+    <% pages.forEach((page) => { %>
+      <option value="<%= page.tab_key %>" <%= (product.tab || '') === page.tab_key ? 'selected' : '' %>><%= page.name %></option>
+    <% }) %>
+  </select>
+</div>
+
+<div class="col-md-4 form-group">
+  <label>Kateqoriya</label>
+  <select class="form-control" name="category_id">
+    <option value="">Seçilməyib</option>
+    <% categories.forEach((category) => { %>
+      <option value="<%= category.id %>" <%= Number(product.category_id || 0) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
+    <% }) %>
+  </select>
+</div>
+
+<div class="col-md-4 form-group">
+  <label>Platforma</label>
+  <input class="form-control" type="text" name="platform" value="<%= product.platform || '' %>" placeholder="məs: PS5, Steam, PC" />
+</div>
+
+<div class="col-md-12 mb-3 mt-4">
+  <h6 class="text-primary font-weight-bold"><i class="fas fa-tag mr-2"></i> Qiymət və Stok</h6>
+  <hr class="mt-0">
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Cari Qiymət (AZN)</label>
+  <input class="form-control font-weight-bold text-success" type="number" step="0.01" name="price_current" value="<%= product.price_current || 0 %>" />
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Köhnə Qiymət (AZN)</label>
+  <input class="form-control" type="number" step="0.01" name="price_old" value="<%= product.price_old || '' %>" />
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Endirim Etiketi</label>
+  <input class="form-control" type="text" name="discount_label" value="<%= product.discount_label || '' %>" placeholder="məs: -20%" />
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Stok Sayı</label>
+  <input class="form-control" type="number" name="stock_quantity" value="<%= product.stock_quantity || 0 %>" />
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Endirim Bitmə Tarixi</label>
+  <input class="form-control" type="datetime-local" name="discount_expiry" value="<%= product.discount_expiry || '' %>" />
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Region</label>
+  <input class="form-control" type="text" name="region" value="<%= product.region || '' %>" placeholder="məs: Turkey, Global" />
+</div>
+
+<div class="col-md-3 form-group">
+  <label>Dil</label>
+  <input class="form-control" type="text" name="language" value="<%= product.language || '' %>" placeholder="məs: Turkish, English" />
+</div>
+
+<div class="col-md-12 mb-3 mt-4">
+  <h6 class="text-primary font-weight-bold"><i class="fas fa-image mr-2"></i> Media və Görüntü</h6>
+  <hr class="mt-0">
+</div>
+
+<div class="col-md-6 form-group">
+  <label>Mövcud Şəkil URL-ləri</label>
+  <textarea class="form-control" name="image" rows="3" placeholder="Hər sətirə 1 şəkil URL-i yazın"><%= product.image || '' %></textarea>
+</div>
+
+<div class="col-md-6 form-group">
+  <label>Yeni Şəkillər Yüklə</label>
+  <input class="form-control pt-1" type="file" name="images[]" multiple accept="image/*" />
+  <small class="form-text text-muted">Kompüterinizdən bir və ya bir neçə şəkil seçin.</small>
+</div>
+
+<div class="col-md-12 mb-3 mt-4">
+  <h6 class="text-primary font-weight-bold"><i class="fas fa-key mr-2"></i> Satış və Açarlar</h6>
+  <hr class="mt-0">
+</div>
+
+<div class="col-md-12 form-group">
+  <label>Yeni Məhsul Açarları (Hər sətirdə bir Pin/Kod daxil edin)</label>
+  <textarea class="form-control font-mono" name="keys" rows="4" placeholder="CODE-1234
+CODE-5678"></textarea>
+  <small class="form-text text-muted">Bura daxil etdiyiniz kodlar bu məhsulun bazasına əlavə olunacaq.</small>
+</div>
+
+<div class="col-md-12 form-group">
+  <label>Məhsulun Özəllikləri (Hər sətirdə bir maddə)</label>
+  <textarea class="form-control" name="details" rows="4" placeholder="Online play üçün PS Plus tələb olunur
+4K dəstəyi"><%= product.details ? product.details.join('\n') : '' %></textarea>
+</div>
+
+<div class="col-md-4 form-group">
+  <label>Etiket (Badge)</label>
+  <input class="form-control" type="text" name="badge" value="<%= product.badge || '' %>" placeholder="məs: HOT, NEW" />
+</div>
+
+<div class="col-md-4 form-group">
+  <label>Düymə mətni (CTA)</label>
+  <input class="form-control" type="text" name="cta" value="<%= product.cta || 'Səbətə at' %>" />
+</div>
+
+<div class="col-md-4 form-group">
+  <label>Sıralama (Sort order)</label>
+  <input class="form-control" type="number" name="sort_order" value="<%= product.sort_order || 0 %>" />
+</div>
+
+<div class="col-md-6 form-group">
+  <label>Vitrin Yerləşimi (Placements)</label>
+  <div class="d-flex gap-3">
+    <div class="form-check mr-3">
+      <input class="form-check-input" type="checkbox" name="placements" value="hot_deals" <%= product.placements && product.placements.includes('hot_deals') ? 'checked' : '' %> id="place-hot" />
+      <label class="form-check-label" for="place-hot">Qaynar Fürsətlər</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="placements" value="player_picks" <%= product.placements && product.placements.includes('player_picks') ? 'checked' : '' %> id="place-pick" />
+      <label class="form-check-label" for="place-pick">Müştəri Seçimi</label>
+    </div>
+  </div>
+</div>
+
+<div class="col-md-6 form-group">
+  <label>Tənzimləmələr</label>
+  <div class="d-flex gap-3">
+    <div class="form-check mr-3">
+      <input class="form-check-input" type="checkbox" name="searchable" value="1" <%= product.id ? (product.searchable ? 'checked' : '') : 'checked' %> id="check-search" />
+      <label class="form-check-label" for="check-search">Axtarışda görünsün</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="accent" value="1" <%= product.accent ? 'checked' : '' %> id="check-accent" />
+      <label class="form-check-label" for="check-accent">Vurğulansın (Accent)</label>
+    </div>
+  </div>
+</div>

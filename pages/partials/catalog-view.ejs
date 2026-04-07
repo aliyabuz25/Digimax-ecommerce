@@ -1,0 +1,62 @@
+<section id="catalog-shell" class="catalog-shell" hidden>
+  <div class="catalog-shell__inner mx-auto max-w-[1280px]">
+    <div class="catalog-shell__intro">
+      <div>
+        <p class="catalog-shell__eyebrow" id="catalog-eyebrow"><%= siteData.catalogTabs.PlayStation.eyebrow %></p>
+        <h2 class="catalog-shell__title" id="catalog-title"><%= siteData.catalogTabs.PlayStation.title %></h2>
+      </div>
+      <p class="catalog-shell__copy" id="catalog-description"><%= siteData.catalogTabs.PlayStation.description %></p>
+    </div>
+
+    <div class="catalog-shell__hero" id="catalog-banners"></div>
+    <div class="catalog-shell__chips" id="catalog-chips"></div>
+
+    <div class="catalog-layout">
+      <aside class="catalog-sidebar">
+        <div class="catalog-sidebar__head">
+          <span>Filtrlər</span>
+          <button type="button" id="catalog-reset-btn">Sıfırla</button>
+        </div>
+        <div id="catalog-filters"></div>
+      </aside>
+
+      <div class="catalog-main">
+        <div class="catalog-toolbar">
+          <label class="catalog-search">
+            <span>Axtar</span>
+            <input id="catalog-search-input" type="text" placeholder="Bu bölmədə məhsul axtarın" />
+          </label>
+
+          <div class="catalog-toolbar__meta">
+            <span id="catalog-count">0 məhsul</span>
+            <button type="button">Populyarlığa görə</button>
+            <div id="catalog-carousel-controls" class="carousel-controls carousel-controls--compact" hidden></div>
+          </div>
+        </div>
+
+        <div id="catalog-skeleton" class="catalog-products catalog-products--skeleton" hidden>
+          <% for (let i = 0; i < 4; i += 1) { %>
+            <div class="catalog-product-skeleton">
+              <div class="skeleton-media"></div>
+              <div class="skeleton-line skeleton-title"></div>
+              <div class="skeleton-line skeleton-price"></div>
+              <div class="skeleton-button"></div>
+            </div>
+          <% } %>
+        </div>
+
+        <div id="catalog-products" class="catalog-products catalog-products--paged"></div>
+
+        <div id="catalog-empty" class="catalog-empty" hidden>
+          <span class="catalog-empty__badge" id="catalog-empty-badge"></span>
+          <h3 class="catalog-empty__title">Sorğuya uyğun məhsul tapılmadı</h3>
+          <p class="catalog-empty__copy">
+            Axtarış və ya filtr nəticəsində uyğun məhsul görünmür. Sorğunu dəyişib yenidən yoxlayın.
+          </p>
+        </div>
+
+        <div id="catalog-pagination" class="catalog-pagination" hidden></div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="az">
+<%- include("partials/head") %>
+<body>
+  <div class="shell min-h-screen antialiased">
+    <%- include("partials/navbar", { siteData }) %>
+
+    <main class="profile-page py-20 px-4">
+      <div class="container mx-auto max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Sidebar -->
+          <div class="md:col-span-1 space-y-6">
+            <div class="profile-card bg-[#1c202c] border border-[#2a2f3b] p-8 rounded-3xl text-center">
+              <div class="w-24 h-24 bg-purple-600 rounded-full mx-auto flex items-center justify-center text-3xl font-bold mb-4 shadow-xl shadow-purple-500/20">
+                <%= user.name.charAt(0) %>
+              </div>
+              <h2 class="text-xl font-bold"><%= user.name %></h2>
+              <p class="text-sm text-gray-400 mb-6"><%= user.email %></p>
+              <div class="balance-badge bg-green-500/10 text-green-400 py-2 px-4 rounded-full text-sm font-bold border border-green-500/20">
+                Balans: <%= user.balance ? user.balance.toFixed(2) : '0.00' %> AZN
+              </div>
+            </div>
+            
+            <nav class="bg-[#1c202c] border border-[#2a2f3b] rounded-3xl overflow-hidden">
+              <a href="/profile" class="block py-4 px-6 bg-purple-600 text-white font-medium border-l-4 border-white transition-all">Sifarişlərim</a>
+              <a href="/profile/edit" class="block py-4 px-6 text-gray-400 hover:bg-[#161a25] transition-all">Məlumatlarım</a>
+              <a href="/logout" class="block py-4 px-6 text-red-400 hover:bg-red-400/5 transition-all">Çıxış</a>
+            </nav>
+          </div>
+
+          <!-- Content -->
+          <div class="md:col-span-2">
+            <div class="content-card bg-[#1c202c] border border-[#2a2f3b] p-8 rounded-3xl min-h-[400px]">
+              <h1 class="text-2xl font-bold mb-8">Son Sifarişlərim</h1>
+              
+              <div class="space-y-6">
+                <% if (orders && orders.length > 0) { %>
+                  <% orders.forEach(order => { %>
+                    <div class="order-item bg-[#161a25] border border-[#2a2f3b] p-6 rounded-2xl">
+                      <div class="flex justify-between items-start mb-4">
+                        <div class="flex gap-4">
+                          <img src="<%= order.product_image %>" class="w-16 h-20 object-cover rounded-lg">
+                          <div>
+                            <h3 class="font-bold text-lg"><%= order.product_title %></h3>
+                            <p class="text-sm text-gray-500">Kod: <%= order.order_code %></p>
+                            <p class="text-xs text-gray-600"><%= new Date(order.created_at).toLocaleString('az-AZ') %></p>
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <div class="text-purple-400 font-bold mb-1"><%= order.total_amount.toFixed(2) %> AZN</div>
+                          <span class="badge <%= order.payment_status === 'approved' ? 'bg-success/10 text-success border border-success/20' : 'bg-warning/10 text-warning border border-warning/20' %> px-3 py-1 rounded-full text-xs font-bold">
+                            <%= order.payment_status === 'approved' ? 'Təsdiqləndi' : 'Gözləmədə' %>
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <% if (order.payment_status === 'approved' && order.keys && order.keys.length > 0) { %>
+                        <div class="keys-box mt-4 p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
+                          <p class="text-xs text-purple-400 font-bold mb-2 uppercase tracking-wider">Məhsul Açarları:</p>
+                          <div class="space-y-2">
+                            <% order.keys.forEach(key => { %>
+                              <div class="flex justify-between items-center bg-[#1c202c] p-3 rounded-lg border border-[#2a2f3b]">
+                                <code class="text-white font-mono"><%= key %></code>
+                                <button class="text-gray-500 hover:text-white" onclick="navigator.clipboard.writeText('<%= key %>')">
+                                  <iconify-icon icon="solar:copy-bold"></iconify-icon>
+                                </button>
+                              </div>
+                            <% }) %>
+                          </div>
+                        </div>
+                      <% } else if (order.payment_status === 'approved') { %>
+                        <p class="text-sm text-gray-500 italic mt-4">Açarlar hazırlanır...</p>
+                      <% } %>
+                    </div>
+                  <% }) %>
+                <% } else { %>
+                  <div class="text-center py-20 text-gray-500">
+                    <iconify-icon icon="solar:box-minimalistic-bold-duotone" class="text-6xl mb-4"></iconify-icon>
+                    <p>Hələ heç bir sifarişiniz yoxdur.</p>
+                    <a href="/" class="text-purple-400 hover:underline mt-2 inline-block">Kataloqa baxın</a>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="custom-cursor-wrapper">
+        <div class="cursor-dot" id="cursor-dot"></div>
+        <div class="cursor-trail" id="cursor-trail"></div>
+      </div>
+    </main>
+
+    <%- include("partials/footer", { siteData }) %>
+  </div>
+
+  <script id="site-data" type="application/json"><%- JSON.stringify(siteData).replace(/</g, "\\u003c") %></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

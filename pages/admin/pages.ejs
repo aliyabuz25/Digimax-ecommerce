@@ -1,0 +1,99 @@
+<%- include("partials/head", { title }) %>
+<%- include("partials/sidebar", { active }) %>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Səhifələrin İdarə Edilməsi</h1>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#add-page-card">
+          <i class="fas fa-plus mr-2"></i> Yeni Səhifə
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Add Page Form -->
+      <div class="collapse mb-4" id="add-page-card">
+        <div class="card shadow-sm border-0">
+          <div class="card-header"><h3 class="card-title">Yeni Səhifə Əlavə Et</h3></div>
+          <div class="card-body">
+            <form action="/admin/pages" method="post">
+              <div class="row">
+                <%- include("partials/page-form-fields", { page: {}, iconOptions }) %>
+              </div>
+              <div class="text-right">
+                <button class="btn btn-success" type="submit">Səhifəni Yadda Saxla</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-header"><h3 class="card-title">Mövcud Səhifələr</h3></div>
+        <div class="card-body table-responsive p-0">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#ID</th>
+                <th>İkon</th>
+                <th>Ad</th>
+                <th>Tab Açar</th>
+                <th>Sıralama</th>
+                <th>Status</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pages.forEach((page) => { %>
+                <tr>
+                  <td><span class="text-muted"><%= page.id %></span></td>
+                  <td><iconify-icon icon="<%= page.icon_key %>" style="font-size: 20px;"></iconify-icon></td>
+                  <td><strong><%= page.name %></strong></td>
+                  <td><code><%= page.tab_key %></code></td>
+                  <td><%= page.sort_order %></td>
+                  <td>
+                    <span class="badge <%= page.is_active ? 'bg-success' : 'bg-secondary' %>">
+                      <%= page.is_active ? 'Aktiv' : 'Gizli' %>
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="collapse" data-target="#edit-page-<%= page.id %>">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form action="/admin/pages/<%= page.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Səhifəni silmək istədiyinizə əminsiniz?')">
+                      <button class="btn btn-sm btn-outline-danger" type="submit">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                <tr class="collapse bg-light" id="edit-page-<%= page.id %>">
+                  <td colspan="7">
+                    <div class="p-4 bg-white border rounded m-3">
+                      <h5 class="mb-3">Səhifəni Redaktə Et: <%= page.name %></h5>
+                      <form action="/admin/pages/<%= page.id %>/update" method="post">
+                        <input type="hidden" name="id" value="<%= page.id %>" />
+                        <div class="row">
+                          <%- include("partials/page-form-fields", { page, iconOptions }) %>
+                        </div>
+                        <div class="text-right mt-2">
+                          <button class="btn btn-primary" type="submit">Dəyişiklikləri Yadda Saxla</button>
+                        </div>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include("partials/footer") %>

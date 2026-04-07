@@ -1,0 +1,987 @@
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { mapProductRow, queryStoreRows } from "../lib/storeDb";
+
+defineProps({
+  activePrimaryTab: {
+    type: String,
+    default: "",
+  },
+});
+
+const emit = defineEmits(["go-home", "select-primary"]);
+
+const mobileOpen = ref(false);
+const languageOpen = ref(false);
+const isDarkMode = ref(false);
+const cartOpen = ref(false);
+const searchOpen = ref(false);
+const searchQuery = ref("");
+const navReady = ref(false);
+const cartItems = ref([]);
+const isScrolled = ref(false);
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 20;
+};
+
+const primaryLinks = ref([]);
+const secondaryLinks = ref([]);
+const languages = ref([]);
+const currentLanguage = ref({ label: "AZ", name: "Azərbaycan", flag: "az" });
+
+const fallbackSearchSuggestions = [
+  "resident evil",
+  "call of duty",
+  "abunəlik",
+  "assassin's creed",
+  "stalker 2",
+  "gta 5",
+];
+
+const searchSuggestions = ref(fallbackSearchSuggestions);
+const searchPublishers = [
+  "EA Swiss Sarl",
+  "Activision Blizzard Int'l BV",
+  "Sony Interactive Entertainment Europe",
+  "UBISOFT ENTERTAINMENT SA",
+  "WARNER BROS. INTERACTIVE",
+  "CE EUROPE LIMITED",
+];
+
+const fallbackSearchResults = [
+  {
+    title: "Call of Duty: Modern Warfare Remastered",
+    price: "585 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "Resident Evil Requiem",
+    price: "10 170 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "Resident Evil 2",
+    price: "4 890 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+  {
+    title: "Assassin's Creed Unity",
+    price: "5 850 ₼",
+    image: "/digimax_1080x1080_poster_icon.png",
+  },
+];
+
+const searchResults = ref(fallbackSearchResults);
+
+const icons = {
+  playstation: '<svg viewBox="0 0 24 24"><path d="M10.4 3.2v9.6c0 .6-.2 1-.7 1.2l-1.8.9V5.3c0-1 .7-1.6 1.6-2.1l.9-.4Zm2.1 3.4c3 .9 5 2 5 3.3 0 1-.7 1.8-2.1 2.4l-2.9 1V9.7c0-.6-.1-1-.5-1.2-.4-.3-1-.6-1.6-.8V3.8l2.1.8Zm4.4 8.8-3.8 1.4v-1.9l2.7-1c.7-.3 1.1-.2 1.1.4v1.1Zm-10.6-.7 4.8-1.7v2L8 16.3c-1.3.5-2.6.3-3.2-.2-.8-.6-.6-1 .6-1.4Zm5.2 2.2v2l-2.7 1c-1.2.4-2.2.4-2.8.1-.7-.4-.5-.9.4-1.2l5.1-1.9Z"/></svg>',
+  xbox: '<svg viewBox="0 0 24 24"><path d="M12 2.5c2.2 0 4.2.6 6 1.7-1.4.2-2.9.9-4.2 2.1-.7-.7-1.2-1-1.8-1s-1.1.3-1.8 1C8.9 5.1 7.4 4.4 6 4.2A10.9 10.9 0 0 1 12 2.5Zm-7 4.2c1.8 0 4.3 1.8 6 4.3l-4.8 8A9.5 9.5 0 0 1 5 6.7Zm14 0A9.5 9.5 0 0 1 17.8 19L13 11c1.7-2.5 4.2-4.3 6-4.3Zm-7 5.8 4.9 8c-1.4.6-3 .9-4.9.9s-3.5-.3-4.9-1l4.9-8Z"/></svg>',
+  services: '<svg viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v14l-3-2.1L12 19l-4-2.1L5 19V5a2 2 0 0 1 2-2Zm1 4v2h8V7H8Zm0 4v2h5v-2H8Z"/></svg>',
+  coins: '<svg viewBox="0 0 24 24"><path d="M12 4c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3Zm-8 5.6c1.6 1.2 4.6 2 8 2s6.4-.8 8-2v2.8c0 1.7-3.6 3-8 3s-8-1.3-8-3V9.6Zm0 5.4c1.6 1.2 4.6 2 8 2s6.4-.8 8-2v2c0 1.7-3.6 3-8 3s-8-1.3-8-3v-2Z"/></svg>',
+  search: '<svg viewBox="0 0 24 24"><path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm8.9 11.5 1.6 1.6-1.4 1.4-1.6-1.6-2.4-2.4 1.4-1.4 2.4 2.4Z"/></svg>',
+  cart: '<svg viewBox="0 0 24 24"><path d="M7 5h14l-1.6 8.4a2 2 0 0 1-2 1.6H10a2 2 0 0 1-2-1.5L6.2 4H3V2h4.7L8.4 6H19l.4-1Zm3 13a1.8 1.8 0 1 1 0 3.5A1.8 1.8 0 0 1 10 18Zm7 0a1.8 1.8 0 1 1 0 3.5 1.8 1.8 0 0 1 0-3.5Z"/></svg>',
+  globe: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Zm5.7 8h-3a15.5 15.5 0 0 0-1.2-5A7 7 0 0 1 17.7 11Zm-5.7 8c.9 0 2.2-2.1 2.7-6H9.3c.5 3.9 1.8 6 2.7 6Zm-2.7-8h5.4c-.5-3.9-1.8-6-2.7-6s-2.2 2.1-2.7 6ZM6.5 6A15.5 15.5 0 0 0 5.3 11h3a15.5 15.5 0 0 1 1.2-5Zm-1.2 7A15.5 15.5 0 0 0 6.5 18a15.5 15.5 0 0 1 1.2-5h-3Zm8.2 5a15.5 15.5 0 0 0 1.2-5h3a7 7 0 0 1-4.2 5Z"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5z"/></svg>',
+  menu: '<svg viewBox="0 0 24 24"><path d="M4 7h16v2H4V7Zm0 8v-2h16v2H4Z"/></svg>',
+  close: '<svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>',
+};
+
+const icon = (name) => icons[name] || "";
+const flagUrl = (code) => `https://hatscripts.github.io/circle-flags/flags/${code}.svg`;
+
+const activeLanguageLabel = computed(() => currentLanguage.value.label);
+const normalizedQuery = computed(() => searchQuery.value.trim().toLowerCase());
+
+const filteredSuggestions = computed(() => {
+  if (!normalizedQuery.value) return [];
+  return searchSuggestions.value.filter((item) => item.toLowerCase().includes(normalizedQuery.value));
+});
+
+const filteredResults = computed(() => {
+  if (!normalizedQuery.value) return [];
+  return searchResults.value.filter((item) => item.title.toLowerCase().includes(normalizedQuery.value));
+});
+
+const cartSubtotal = computed(() =>
+  cartItems.value.reduce((sum, item) => sum + Number(item.price_current || 0), 0).toLocaleString("az-AZ"),
+);
+
+const selectLanguage = (language) => {
+  currentLanguage.value = language;
+  languageOpen.value = false;
+};
+
+const rowsFromStatement = (db, query) => {
+  const result = db.exec(query)[0];
+  if (!result) return [];
+  return result.values.map((row) =>
+    Object.fromEntries(result.columns.map((column, index) => [column, row[index]])),
+  );
+};
+
+const loadNavigation = async () => {
+  try {
+    const SQL = await window.initSqlJs({
+      locateFile: (file) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`,
+    });
+    const response = await fetch("/navigation.db");
+    const buffer = await response.arrayBuffer();
+    const db = new SQL.Database(new Uint8Array(buffer));
+
+    primaryLinks.value = rowsFromStatement(db, "SELECT label, icon FROM nav_primary ORDER BY sort_order ASC");
+    secondaryLinks.value = rowsFromStatement(db, "SELECT label, active FROM nav_secondary ORDER BY sort_order ASC").map((item) => ({ ...item, active: Boolean(item.active) }));
+    languages.value = rowsFromStatement(db, "SELECT label, name, flag, is_default FROM nav_languages ORDER BY sort_order ASC").map((item) => ({ ...item, is_default: Boolean(item.is_default) }));
+
+    currentLanguage.value = languages.value.find((item) => item.is_default) || languages.value[0] || currentLanguage.value;
+    navReady.value = true;
+  } catch (err) {
+    console.warn("Navigation DB load failed, using fallbacks:", err);
+    primaryLinks.value = [
+      { label: "PlayStation", icon: "playstation" },
+      { label: "Xbox", icon: "xbox" },
+      { label: "Servislər", icon: "services" },
+      { label: "Oyun Valyutası", icon: "coins" },
+    ];
+    secondaryLinks.value = [
+      { label: "Endirim", active: true },
+      { label: "Sony Türkiyə", active: false },
+      { label: "Steam", active: false },
+      { label: "Spotify", active: false },
+    ];
+    languages.value = [
+      { label: "AZ", name: "Azərbaycan", flag: "az", is_default: true },
+      { label: "RU", name: "Rus", flag: "ru", is_default: false },
+      { label: "EN", name: "English", flag: "gb", is_default: false },
+      { label: "TR", name: "Türkçe", flag: "tr", is_default: false },
+    ];
+    currentLanguage.value = languages.value[0];
+    navReady.value = true;
+  }
+};
+
+const applyTheme = (theme) => {
+  document.body.classList.remove("theme-sweep-light", "theme-sweep-dark");
+  document.body.classList.add(theme === "dark" ? "theme-sweep-dark" : "theme-sweep-light");
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("digimax-theme", theme);
+  isDarkMode.value = theme === "dark";
+};
+
+const toggleTheme = () => {
+  applyTheme(isDarkMode.value ? "light" : "dark");
+};
+
+const openSearch = () => {
+  searchOpen.value = true;
+  setTimeout(() => document.querySelector(".search-field__input")?.focus(), 100);
+};
+
+const closeSearch = () => (searchOpen.value = false);
+const openCart = () => (cartOpen.value = true);
+const closeCart = () => (cartOpen.value = false);
+
+const selectSuggestion = (term) => (searchQuery.value = term);
+const selectPrimaryLink = (label) => emit("select-primary", label);
+const goHome = () => emit("go-home");
+
+const handleKeydown = (e) => {
+  if (e.key === "Escape") {
+    closeSearch();
+    closeCart();
+    languageOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem("digimax-theme");
+  const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(savedTheme || (preferredDark ? "dark" : "light"));
+  loadNavigation();
+  
+  queryStoreRows(`SELECT * FROM store_products WHERE searchable = 1 LIMIT 12`)
+    .then((rows) => {
+      const products = rows.map(mapProductRow);
+      searchResults.value = products;
+      searchSuggestions.value = products.map((item) => item.title.toLowerCase()).slice(0, 8);
+    })
+    .catch(() => {});
+
+  queryStoreRows(`SELECT * FROM store_products LIMIT 3`)
+    .then((rows) => {
+      cartItems.value = rows.map(mapProductRow);
+    })
+    .catch(() => {});
+
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  handleScroll();
+  window.addEventListener("keydown", handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", handleScroll);
+  window.removeEventListener("keydown", handleKeydown);
+});
+</script>
+
+<template>
+  <header :class="['dock-header', { 'is-scrolled': isScrolled, 'is-mobile-open': mobileOpen }]">
+    <!-- Main Dock -->
+    <div class="dock-container">
+      <div class="dock-inner max-w-[1400px] mx-auto">
+        <div class="dock-row">
+          <!-- Brand Logo -->
+          <a href="#" class="dock-brand" @click.prevent="goHome">
+            <img class="dock-logo" src="/digimax_app_logo_icon.png" alt="Digimax" />
+          </a>
+
+          <!-- Primary Navigation -->
+          <nav class="dock-nav" :class="{ 'is-ready': navReady }">
+            <div class="dock-nav__items">
+              <a
+                v-for="item in primaryLinks"
+                :key="item.label"
+                href="#"
+                :class="['dock-nav__link', { 'is-active': item.label === activePrimaryTab }]"
+                @click.prevent="selectPrimaryLink(item.label)"
+              >
+                <span class="dock-nav__icon" v-html="icon(item.icon)"></span>
+                <span class="dock-nav__label">{{ item.label }}</span>
+              </a>
+            </div>
+          </nav>
+
+          <!-- Interaction Actions -->
+          <div class="dock-actions">
+            <!-- Mobile Menu Toggle -->
+            <button class="dock-btn dock-btn--mobile" @click="mobileOpen = !mobileOpen">
+              <span v-html="icon(mobileOpen ? 'close' : 'menu')"></span>
+            </button>
+
+            <!-- Search Trigger -->
+            <button class="dock-btn dock-btn--search" @click="openSearch" aria-label="Search">
+              <span v-html="icon('search')"></span>
+            </button>
+
+            <!-- Language Switcher -->
+            <div class="dock-lang">
+              <button 
+                class="dock-lang__trigger" 
+                @click.stop="languageOpen = !languageOpen"
+                :class="{ 'is-open': languageOpen }"
+              >
+                <img :src="flagUrl(currentLanguage.flag)" :alt="currentLanguage.name" />
+                <span>{{ activeLanguageLabel }}</span>
+                <span v-html="icon('chevron')"></span>
+              </button>
+              
+              <div v-if="languageOpen" class="dock-lang__menu">
+                <button
+                  v-for="lang in languages"
+                  :key="lang.label"
+                  class="dock-lang__item"
+                  @click="selectLanguage(lang)"
+                  :class="{ 'is-active': lang.label === currentLanguage.label }"
+                >
+                  <img :src="flagUrl(lang.flag)" :alt="lang.name" />
+                  <span>{{ lang.name }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Theme Toggle -->
+            <button class="dock-btn dock-btn--theme" @click="toggleTheme">
+              <iconify-icon :icon="isDarkMode ? 'solar:moon-stars-bold' : 'solar:sun-2-bold'"></iconify-icon>
+            </button>
+
+            <!-- Cart Trigger -->
+            <button class="dock-btn dock-btn--cart" @click="openCart">
+              <span class="dock-btn__badge" v-if="cartItems.length">{{ cartItems.length }}</span>
+              <span v-html="icon('cart')"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub Dock (Featured Tags) -->
+    <div class="sub-dock" v-if="!isScrolled || mobileOpen">
+      <div class="sub-dock__inner max-w-[1400px] mx-auto">
+        <nav class="sub-dock__nav">
+          <a
+            v-for="item in secondaryLinks"
+            :key="item.label"
+            href="#"
+            :class="['sub-dock__link', { 'is-active': item.active }]"
+          >
+            {{ item.label }}
+          </a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Full Screen Search Overlay -->
+    <transition name="search-pop">
+      <div v-if="searchOpen" class="search-overlay" @click.self="closeSearch">
+        <div class="search-panel">
+          <div class="search-header">
+            <div class="search-field">
+              <span class="search-field__icon" v-html="icon('search')"></span>
+              <input 
+                v-model="searchQuery" 
+                class="search-field__input" 
+                placeholder="Oyun, abunəlik və ya xidmət axtar..." 
+                type="text"
+              />
+              <button class="search-close" @click="closeSearch">
+                <span v-html="icon('close')"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="search-body">
+            <div class="search-results" v-if="normalizedQuery">
+              <div v-if="!filteredResults.length" class="search-empty">Nəticə tapılmadı</div>
+              <article v-for="res in filteredResults" :key="res.title" class="search-item">
+                <div class="search-item__media" :style="{ backgroundImage: `url(${res.image})` }"></div>
+                <div class="search-item__info">
+                  <h4>{{ res.title }}</h4>
+                  <p>{{ res.price }}</p>
+                </div>
+                <button class="search-item__go" v-html="icon('chevron')"></button>
+              </article>
+            </div>
+            
+            <div class="search-extras" v-else>
+              <div class="search-group">
+                <h5>Məşhur Axtarışlar</h5>
+                <div class="search-tags">
+                  <button v-for="tag in searchSuggestions" :key="tag" @click="selectSuggestion(tag)">
+                    {{ tag }}
+                  </button>
+                </div>
+              </div>
+              <div class="search-group">
+                <h5>Naşirlər</h5>
+                <div class="search-publishers">
+                  <span v-for="pub in searchPublishers" :key="pub">{{ pub }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Slide-out Cart Drawer -->
+    <transition name="cart-slide">
+      <div v-if="cartOpen" class="cart-stage" @click.self="closeCart">
+        <aside class="cart-panel">
+          <div class="cart-header">
+            <h3>Səbətiniz</h3>
+            <button @click="closeCart" v-html="icon('close')"></button>
+          </div>
+          
+          <div class="cart-items">
+            <div v-if="!cartItems.length" class="cart-empty-msg">Səbətiniz boşdur</div>
+            <article v-for="item in cartItems" :key="item.title" class="cart-item">
+              <div class="cart-item__media" :style="{ backgroundImage: `url(${item.image})` }"></div>
+              <div class="cart-item__details">
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.price }}</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="cart-footer" v-if="cartItems.length">
+            <div class="cart-total">
+              <span>Cəmi</span>
+              <strong>{{ cartSubtotal }} ₼</strong>
+            </div>
+            <button class="cart-checkout">Sifarişi Tamamla</button>
+          </div>
+        </aside>
+      </div>
+    </transition>
+  </header>
+</template>
+
+<style scoped>
+.dock-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 20px 24px;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dock-header.is-scrolled {
+  padding: 12px 24px;
+}
+
+/* Glassmorphism Container */
+.dock-container {
+  background: rgba(13, 14, 20, 0.4);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 0 24px;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.dock-header.is-scrolled .dock-container {
+  background: rgba(13, 14, 20, 0.7);
+  border-radius: 99px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88px;
+  gap: 32px;
+  transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dock-header.is-scrolled .dock-row {
+  height: 64px;
+}
+
+/* Brand */
+.dock-brand {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.dock-brand:hover {
+  transform: scale(1.05);
+}
+
+.dock-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  transition: height 0.5s ease;
+}
+
+.dock-header.is-scrolled .dock-logo {
+  height: 38px;
+}
+
+/* Navigation */
+.dock-nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dock-nav.is-ready {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dock-nav__items {
+  display: flex;
+  gap: 8px;
+}
+
+.dock-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 99px;
+  color: #8e95b0;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.dock-nav__link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dock-nav__link.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.dock-nav__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dock-nav__icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* Actions */
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dock-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+}
+
+.dock-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.dock-btn :deep(svg) {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.dock-btn__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ff7e00;
+  color: #000;
+  font-size: 10px;
+  font-weight: 900;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(255, 126, 0, 0.4);
+}
+
+/* Language */
+.dock-lang {
+  position: relative;
+}
+
+.dock-lang__trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dock-lang__trigger:hover, .dock-lang__trigger.is-open {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dock-lang__trigger img {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.dock-lang__trigger :deep(svg) {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.dock-lang__menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background: #1a1c26;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 8px;
+  min-width: 160px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  animation: menuIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dock-lang__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #8e95b0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.dock-lang__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.dock-lang__item.is-active {
+  color: #ff7e00;
+  background: rgba(255, 126, 0, 0.08);
+}
+
+.dock-lang__item img {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+/* Sub Dock */
+.sub-dock {
+  margin-top: 12px;
+  opacity: 1;
+  transition: all 0.4s ease;
+}
+
+.sub-dock__nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sub-dock__link {
+  padding: 8px 16px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #8e95b0;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.sub-dock__link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.sub-dock__link.is-active {
+  background: #ff7e00;
+  color: #000;
+  border-color: #ff7e00;
+}
+
+/* Search Overlay */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 6, 8, 0.85);
+  backdrop-filter: blur(20px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  padding: 10vh 24px;
+}
+
+.search-panel {
+  width: 100%;
+  max-width: 800px;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 0 24px;
+  height: 80px;
+  gap: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.search-field__icon :deep(svg) {
+  width: 24px;
+  height: 24px;
+  fill: #8e95b0;
+}
+
+.search-field__input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  outline: none;
+}
+
+.search-close {
+  background: transparent;
+  border: 0;
+  color: #8e95b0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.search-close:hover {
+  color: #fff;
+}
+
+.search-close :deep(svg) {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.search-body {
+  margin-top: 40px;
+}
+
+.search-group h5 {
+  color: #4a4d5e;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.search-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.search-tags button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 20px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-tags button:hover {
+  background: #ff7e00;
+  color: #000;
+  border-color: #ff7e00;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.search-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(10px);
+}
+
+.search-item__media {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+}
+
+.search-item__info h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.search-item__info p {
+  margin: 4px 0 0;
+  color: #ff7e00;
+  font-weight: 800;
+}
+
+/* Cart Drawer */
+.cart-stage {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 2100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cart-panel {
+  width: 100%;
+  max-width: 440px;
+  background: #13141c;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+}
+
+.cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.cart-header h3 {
+  font-family: 'Sora', sans-serif;
+  font-size: 32px;
+  margin: 0;
+}
+
+.cart-header button {
+  background: transparent;
+  border: 0;
+  color: #8e95b0;
+  cursor: pointer;
+}
+
+.cart-header button :deep(svg) {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+}
+
+.cart-items {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.cart-item {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cart-item__media {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+}
+
+.cart-item__details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart-item__details strong {
+  font-size: 16px;
+}
+
+.cart-item__details span {
+  color: #ff7e00;
+  font-weight: 800;
+}
+
+.cart-footer {
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 32px;
+  border-radius: 24px;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cart-total span {
+  color: #8e95b0;
+  font-weight: 700;
+}
+
+.cart-total strong {
+  font-size: 28px;
+  font-family: 'Sora', sans-serif;
+}
+
+.cart-checkout {
+  width: 100%;
+  height: 60px;
+  background: #ff7e00;
+  border: 0;
+  border-radius: 16px;
+  color: #000;
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cart-checkout:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(255, 126, 0, 0.3);
+}
+
+/* Transitions */
+.search-pop-enter-active, .search-pop-leave-active { transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+.search-pop-enter-from, .search-pop-leave-to { opacity: 0; transform: scale(1.05); }
+
+.cart-slide-enter-active, .cart-slide-leave-active { transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+.cart-slide-enter-active .cart-panel, .cart-slide-leave-active .cart-panel { transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+.cart-slide-enter-from, .cart-slide-leave-to { opacity: 0; }
+.cart-slide-enter-from .cart-panel, .cart-slide-leave-to .cart-panel { transform: translateX(100%); }
+
+/* Mobile Adaptations */
+@media (max-width: 1024px) {
+  .dock-nav { display: none; }
+  .dock-btn--mobile { display: flex; }
+  .dock-row { gap: 16px; }
+}
+
+@media (min-width: 1025px) {
+  .dock-btn--mobile { display: none; }
+}
+</style>

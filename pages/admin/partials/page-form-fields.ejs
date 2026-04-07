@@ -1,0 +1,69 @@
+<div class="col-md-6 form-group">
+  <label>Name</label>
+  <input class="form-control" type="text" name="name" value="<%= page.name || '' %>" required />
+</div>
+<div class="col-md-6 form-group">
+  <label>Slug</label>
+  <input class="form-control" type="text" name="slug" value="<%= page.slug || '' %>" required />
+</div>
+<div class="col-md-6 form-group">
+  <label>Tab key</label>
+  <input class="form-control" type="text" name="tab_key" value="<%= page.tab_key || '' %>" required />
+</div>
+<div class="col-md-6 form-group">
+  <label>Sort order</label>
+  <input class="form-control" type="number" name="sort_order" value="<%= page.sort_order || 0 %>" />
+</div>
+<div class="col-md-12 form-group">
+  <label>Icon</label>
+  <div class="icon-picker">
+    <div class="icon-picker__control">
+      <select
+        class="form-control"
+        name="icon_key"
+        data-icon-select="preview-<%= page.id || 'new' %>"
+        data-icon-label="preview-label-<%= page.id || 'new' %>"
+      >
+      <% iconOptions.forEach((option) => { %>
+        <option value="<%= option.key %>" <%= (page.icon_key || '') === option.key ? 'selected' : '' %>><%= option.label %> - <%= option.key %></option>
+      <% }) %>
+      </select>
+    </div>
+    <div class="icon-preview-card">
+      <div class="icon-preview" id="preview-<%= page.id || 'new' %>"></div>
+      <div class="icon-preview-meta">
+        <div class="icon-preview-meta__eyebrow">Preview</div>
+        <div class="icon-preview-meta__label" id="preview-label-<%= page.id || 'new' %>"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-md-12 form-group">
+  <label>Eyebrow</label>
+  <input class="form-control" type="text" name="eyebrow" value="<%= page.eyebrow || '' %>" />
+</div>
+<div class="col-md-12 form-group">
+  <label>Title</label>
+  <input class="form-control" type="text" name="title" value="<%= page.title || '' %>" />
+</div>
+<div class="col-md-12 form-group">
+  <label>Description</label>
+  <textarea class="form-control" name="description" rows="2"><%= page.description || '' %></textarea>
+</div>
+<div class="col-md-6 form-group">
+  <label>Chips (1 line = 1 item)</label>
+  <textarea class="form-control" name="chips" rows="4"><%= page.chips ? page.chips.join('\n') : '' %></textarea>
+</div>
+<div class="col-md-6 form-group">
+  <label>Filters (1 line = 1 item)</label>
+  <textarea class="form-control" name="filters" rows="4"><%= page.filters ? page.filters.join('\n') : '' %></textarea>
+</div>
+<div class="col-md-12 form-group">
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="is_active" value="1" <%= page.id ? (page.is_active ? 'checked' : '') : 'checked' %> />
+    <label class="form-check-label">Active</label>
+  </div>
+</div>
+<div class="col-md-12">
+  <button class="btn btn-danger" type="submit">Save page</button>
+</div>

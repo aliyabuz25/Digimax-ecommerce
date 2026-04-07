@@ -1,0 +1,29 @@
+<footer class="main-footer">
+  <strong>Digimax Admin</strong>
+  <div class="float-right d-none d-sm-inline-block">AdminLTE panel</div>
+</footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script>
+  document.querySelectorAll("[data-icon-select]").forEach(function(select) {
+    const previewId = select.getAttribute("data-icon-select");
+    const labelId = select.getAttribute("data-icon-label");
+    const preview = document.getElementById(previewId);
+    const label = document.getElementById(labelId);
+    const sync = function() {
+      if (preview) {
+        preview.innerHTML = "<iconify-icon icon='" + select.value + "'></iconify-icon>";
+      }
+      if (label) {
+        const selected = select.options[select.selectedIndex];
+        label.textContent = selected ? selected.textContent : select.value;
+      }
+    };
+    select.addEventListener("change", sync);
+    sync();
+  });
+</script>
+</body>
+</html>

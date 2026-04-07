@@ -1,0 +1,115 @@
+<%- include("partials/head", { title }) %>
+<%- include("partials/sidebar", { active }) %>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Məhsulların İdarə Edilməsi</h1>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#add-product-card">
+          <i class="fas fa-plus mr-2"></i> Yeni Məhsul
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Add Product Form (Collapsed by default) -->
+      <div class="collapse mb-4" id="add-product-card">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Yeni Məhsul Əlavə Et</h3></div>
+          <div class="card-body">
+            <form action="/admin/products" method="post" enctype="multipart/form-data">
+              <div class="row">
+                <%- include("partials/product-form-fields", { product: {}, pages, categories }) %>
+              </div>
+              <hr>
+              <div class="text-right">
+                <button type="submit" class="btn btn-success">Məhsulu Yadda Saxla</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">Bütün Məhsullar</h3></div>
+        <div class="card-body table-responsive p-0">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Başlıq</th>
+                <th>Səhifə / Kateqoriya</th>
+                <th>Qiymət</th>
+                <th>Stok</th>
+                <th>Yerləşim</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% products.forEach((product) => { %>
+                <tr>
+                  <td><%= product.id %></td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <% if (product.image) { %>
+                        <img src="<%= product.image.split('\n')[0] %>" class="rounded mr-2" style="width: 32px; height: 40px; object-fit: cover;">
+                      <% } %>
+                      <strong><%= product.title %></strong>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light border"><%= product.tab || 'Səhifə yoxdur' %></span><br>
+                    <small class="text-muted"><%= product.category_name || 'Kateqoriya yoxdur' %></small>
+                  </td>
+                  <td><span class="text-success font-weight-bold"><%= product.price_current.toFixed(2) %> AZN</span></td>
+                  <td>
+                    <span class="badge <%= product.stock_quantity > 0 ? 'bg-success' : 'bg-danger' %>">
+                      <%= product.stock_quantity %> ədəd
+                    </span>
+                  </td>
+                  <td>
+                    <% product.placements.forEach(p => { %>
+                      <span class="badge badge-info"><%= p %></span>
+                    <% }) %>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="collapse" data-target="#edit-product-<%= product.id %>">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form action="/admin/products/<%= product.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Məhsulu silmək istədiyinizə əminsiniz?')">
+                      <button class="btn btn-sm btn-outline-danger" type="submit">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                <tr class="collapse bg-light" id="edit-product-<%= product.id %>">
+                  <td colspan="7">
+                    <div class="p-4 border rounded bg-white m-3">
+                      <h5 class="mb-4">Məhsulu Redaktə Et: <%= product.title %></h5>
+                      <form action="/admin/products/<%= product.id %>/update" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="id" value="<%= product.id %>" />
+                        <div class="row">
+                          <%- include("partials/product-form-fields", { product, pages, categories }) %>
+                        </div>
+                        <hr>
+                        <div class="text-right">
+                          <button type="submit" class="btn btn-primary">Dəyişiklikləri Yadda Saxla</button>
+                        </div>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include("partials/footer") %>

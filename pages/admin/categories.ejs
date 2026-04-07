@@ -1,0 +1,113 @@
+<%- include("partials/head", { title }) %>
+<%- include("partials/sidebar", { active }) %>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Kateqoriyaların İdarə Edilməsi</h1>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#add-category-card">
+          <i class="fas fa-plus mr-2"></i> Yeni Kateqoriya
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Add Category Form -->
+      <div class="collapse mb-4" id="add-category-card">
+        <div class="card shadow-sm border-0">
+          <div class="card-header"><h3 class="card-title">Yeni Kateqoriya Əlavə Et</h3></div>
+          <div class="card-body">
+            <form action="/admin/categories" method="post">
+              <div class="row">
+                <div class="col-md-5 form-group">
+                  <label>Kateqoriya Adı</label>
+                  <input class="form-control" type="text" name="name" required placeholder="məs: Aksiyon Oyunları" />
+                </div>
+                <div class="col-md-4 form-group">
+                  <label>Slug</label>
+                  <input class="form-control" type="text" name="slug" required placeholder="məs: aksiyon-oyunlari" />
+                </div>
+                <div class="col-md-3 form-group">
+                  <label>Sıralama</label>
+                  <input class="form-control" type="number" name="sort_order" value="0" />
+                </div>
+              </div>
+              <div class="text-right">
+                <button class="btn btn-success" type="submit">Kateqoriyanı Yadda Saxla</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-header"><h3 class="card-title">Mövcud Kateqoriyalar</h3></div>
+        <div class="card-body table-responsive p-0">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#ID</th>
+                <th>Ad</th>
+                <th>Slug</th>
+                <th>Sıralama</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% categories.forEach((category) => { %>
+                <tr>
+                  <td><span class="text-muted"><%= category.id %></span></td>
+                  <td><strong><%= category.name %></strong></td>
+                  <td><code><%= category.slug %></code></td>
+                  <td><%= category.sort_order %></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="collapse" data-target="#edit-category-<%= category.id %>">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form action="/admin/categories/<%= category.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Kateqoriyanı silmək istədiyinizə əminsiniz?')">
+                      <button class="btn btn-sm btn-outline-danger" type="submit">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                <tr class="collapse bg-light" id="edit-category-<%= category.id %>">
+                  <td colspan="5">
+                    <div class="p-4 bg-white border rounded m-3">
+                      <h5 class="mb-3">Kateqoriyanı Redaktə Et: <%= category.name %></h5>
+                      <form action="/admin/categories/<%= category.id %>/update" method="post">
+                        <input type="hidden" name="id" value="<%= category.id %>" />
+                        <div class="row">
+                          <div class="col-md-5 form-group">
+                            <label>Ad</label>
+                            <input class="form-control" type="text" name="name" value="<%= category.name %>" required />
+                          </div>
+                          <div class="col-md-4 form-group">
+                            <label>Slug</label>
+                            <input class="form-control" type="text" name="slug" value="<%= category.slug %>" required />
+                          </div>
+                          <div class="col-md-3 form-group">
+                            <label>Sıralama</label>
+                            <input class="form-control" type="number" name="sort_order" value="<%= category.sort_order %>" />
+                          </div>
+                        </div>
+                        <div class="text-right mt-2">
+                          <button class="btn btn-primary" type="submit">Dəyişiklikləri Yadda Saxla</button>
+                        </div>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include("partials/footer") %>

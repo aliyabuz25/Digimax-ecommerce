@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue Top Navbar</title>
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+              display: ["Sora", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+            colors: {
+              digimax: {
+                50: "#f5f7fb",
+                100: "#eef2f8",
+                500: "#5e6bff",
+                700: "#3f4dcf",
+                950: "#07111d",
+              },
+            },
+            boxShadow: {
+              panel: "0 8px 24px rgba(15, 23, 42, 0.06)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"
+    ></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

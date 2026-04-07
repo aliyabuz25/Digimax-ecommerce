@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="az">
+  <%- include("partials/head") %>
+  <body>
+    <div class="shell min-h-screen antialiased">
+      <div id="app-content" class="app-main-content">
+        <%- include("partials/navbar", { siteData }) %>
+        <main class="page-content product-page">
+          <section class="product-page-shell">
+            <div class="product-page-container product-page-container--empty">
+              <h1>Məhsul tapılmadı</h1>
+              <p>İstədiyiniz məhsul mövcud deyil və ya silinib.</p>
+              <a href="/" class="btn-sketch">Ana səhifəyə qayıt</a>
+            </div>
+          </section>
+        </main>
+        <%- include("partials/footer", { siteData }) %>
+      </div>
+    </div>
+  </body>
+</html>

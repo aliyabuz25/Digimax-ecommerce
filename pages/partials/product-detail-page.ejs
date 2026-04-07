@@ -1,0 +1,133 @@
+<div class="pd-container">
+  <div class="pd-doodle pd-doodle--star"><iconify-icon icon="solar:star-bold-duotone"></iconify-icon></div>
+  <div class="pd-doodle pd-doodle--circle"><iconify-icon icon="solar:videocamera-record-bold-duotone"></iconify-icon></div>
+  <div class="pd-doodle pd-doodle--arrow"><iconify-icon icon="solar:round-alt-arrow-right-bold-duotone"></iconify-icon></div>
+  <div class="pd-inner">
+    <a class="pd-close" href="/" aria-label="Bağla">
+      <iconify-icon icon="solar:close-circle-bold-duotone"></iconify-icon>
+    </a>
+    <nav class="pd-breadcrumbs">
+      <a href="/">Ana Səhifə</a> / <span>Kataloq</span> / <span class="active"><%= product.title %></span>
+    </nav>
+    <div class="pd-main-grid">
+      <div class="pd-visuals">
+        <div class="pd-main-image-wrapper">
+          <% if (!product.image || product.image.includes("digimax_app_logo_icon.png")) { %>
+            <div class="pd-main-image-placeholder flex flex-col items-center justify-center bg-white/[0.04] rounded-[32px] border border-white/5 gap-4 aspect-[4/5] lg:aspect-auto lg:h-[600px] w-full">
+              <span class="text-7xl filter grayscale opacity-20 select-none">🖼️</span>
+              <span class="text-xs font-black uppercase text-white/10 tracking-[0.2em]">Görsəl mövcud deyil</span>
+            </div>
+          <% } else { %>
+            <img src="<%= product.image %>" alt="<%= product.title %>" class="pd-main-image" id="pd-main-image" />
+          <% } %>
+        </div>
+        <% if (product.images.length > 1) { %>
+        <div class="pd-thumbnails">
+          <% product.images.forEach((image, index) => { %>
+            <button class="pd-thumb <%= index === 0 ? 'active' : '' %>" type="button" data-product-image="<%= image %>">
+              <img src="<%= image %>" alt="" />
+            </button>
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+      <div class="pd-content">
+        <h1 class="pd-title"><%= product.title %></h1>
+        <div class="pd-specs">
+          <div class="spec-item"><span class="label">Platforma:</span><span class="value"><%= product.platform || "Universal" %></span></div>
+          <div class="spec-item"><span class="label">Məhsul növü:</span><span class="value"><%= product.product_type || "Digital" %></span></div>
+          <div class="spec-item"><span class="label">Lokallaşdırma:</span><span class="value"><%= product.language || "Açıqlanmayıb" %></span></div>
+          <div class="spec-item"><span class="label">Region:</span><span class="value flex items-center gap-1"><%= product.region || "Global" %></span></div>
+          <div class="spec-item"><span class="label">Stok:</span><span class="value <%= product.isInStock ? 'text-success' : 'text-danger' %>"><%= product.isInStock ? 'Mövcuddur' : 'Bitib' %></span></div>
+        </div>
+        <div class="pd-price-row mt-8">
+          <div class="price-stack">
+            <% if (product.oldPrice) { %><span class="old-price"><%= product.oldPrice %></span><% } %>
+            <div class="current-price-group">
+              <span class="current-price"><%= product.price %></span>
+            </div>
+          </div>
+        </div>
+        <% if (product.discount_expiry) { %>
+        <div class="pd-timer-bar mt-4" id="discount-timer" data-expiry="<%= product.discount_expiry %>">
+          <div class="timer-fill"></div>
+          <span class="timer-text">Endirimin bitməsinə: <span id="timer-countdown">Yüklənir...</span></span>
+        </div>
+        <% } %>
+        <div class="pd-actions mt-8">
+          <button class="pd-add-to-cart btn-sketch" type="button" data-add-product-slug="<%= product.slug %>" <%= !product.isInStock ? 'disabled' : '' %>><%= product.cta || 'Səbətə at' %></button>
+        </div>
+      </div>
+    </div>
+    <div class="pd-info-tabs mt-12">
+      <div class="tab-triggers">
+        <button class="tab-trigger active" type="button">Təsvir</button>
+        <button class="tab-trigger" type="button">Detallar</button>
+      </div>
+      <div class="tab-content py-8">
+        <div class="description-text">
+          <% if (product.details && product.details.length > 0) { %>
+          <ul class="bullet-list mb-6">
+            <% product.details.forEach(detail => { %>
+              <li><%= detail %></li>
+            <% }) %>
+          </ul>
+          <% } %>
+          <p><%= product.subtitle || product.description || "Məhsul haqqında ətraflı məlumat tezliklə yenilənəcacak." %></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        const timerEl = document.getElementById('discount-timer');
+        if (!timerEl) return;
+        
+        const expiry = new Date(timerEl.dataset.expiry).getTime();
+        const countdownEl = document.getElementById('timer-countdown');
+        
+        const updateTimer = () => {
+          const now = new Date().getTime();
+          const distance = expiry - now;
+          
+          if (distance < 0) {
+            timerEl.style.display = 'none';
+            return;
+          }
+          
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          
+          countdownEl.innerHTML = `${days}g ${hours}s ${minutes}d ${seconds}sn`;
+        };
+        
+        setInterval(updateTimer, 1000);
+        updateTimer();
+      })();
+    </script>
+    <div class="pd-recommendations mt-16">
+      <h3 class="rec-title">Tövsiyə olunan məhsullar</h3>
+      <div class="rec-grid">
+        <% recommendedProducts.forEach((recommended) => { %>
+          <a class="rec-card" href="/product/<%= recommended.slug %>">
+            <div class="rec-image-wrap">
+              <% if (!recommended.image || recommended.image.includes("digimax_app_logo_icon.png")) { %>
+                <div class="rec-image-placeholder flex items-center justify-center bg-white/[0.04] aspect-[4/5] w-full border-b border-white/5">
+                  <span class="text-3xl filter grayscale opacity-20 select-none">🖼️</span>
+                </div>
+              <% } else { %>
+                <img src="<%= recommended.image %>" alt="<%= recommended.title %>" />
+              <% } %>
+            </div>
+            <div class="rec-body">
+              <h5><%= recommended.title %></h5>
+              <div class="rec-price"><%= recommended.price %></div>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>

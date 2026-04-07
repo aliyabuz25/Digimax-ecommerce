@@ -1,0 +1,82 @@
+<%- include("partials/head", { title }) %>
+<%- include("partials/sidebar", { active }) %>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1>İdarəetmə Paneli</h1>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3><%= stats.salesCount %></h3>
+              <p>Toplam Satış</p>
+            </div>
+            <div class="icon"><i class="fas fa-shopping-bag"></i></div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-success">
+            <div class="inner">
+              <h3><%= stats.totalRevenue.toFixed(2) %><sup style="font-size: 20px"> AZN</sup></h3>
+              <p>Ümumi Qazanc</p>
+            </div>
+            <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-warning text-white">
+            <div class="inner">
+              <h3><%= stats.userCount %></h3>
+              <p>İstifadəçilər</p>
+            </div>
+            <div class="icon"><i class="fas fa-users"></i></div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-primary">
+            <div class="inner">
+              <h3><%= stats.productCount %></h3>
+              <p>Məhsullar</p>
+            </div>
+            <div class="icon"><i class="fas fa-box"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">Sistem Haqqında</h3></div>
+        <div class="card-body">
+          <p class="lead text-muted">Digimax Admin Panelinə xoş gəlmisiniz. Buradan saytın bütün bölmələrini tam idarə edə bilərsiniz.</p>
+          <div class="row mt-4">
+            <div class="col-md-4">
+              <div class="p-3 border rounded mb-3">
+                <h5><i class="fas fa-box text-primary mr-2"></i> Məhsul İdarəetməsi</h5>
+                <p class="text-sm text-muted">Məhsul əlavə edin, qiymətləri redaktə edin və rəqəmsal açarları (Pin kodları) daxil edin.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 border rounded mb-3">
+                <h5><i class="fas fa-shopping-cart text-success mr-2"></i> Satış və Sifariş</h5>
+                <p class="text-sm text-muted">Sifarişləri izləyin, ödənişləri təsdiqləyin və rəqəmsal məhsulları avtomatik çatdırın.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 border rounded mb-3">
+                <h5><i class="fas fa-user-shield text-info mr-2"></i> Təhlükəsizlik</h5>
+                <p class="text-sm text-muted">İstifadəçiləri idarə edin, banlayın və sistem girişlərinə nəzarət edin.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include("partials/footer") %>
