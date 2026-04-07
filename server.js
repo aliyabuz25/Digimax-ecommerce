@@ -75,15 +75,29 @@ app.use(
 );
 
 app.use(async (req, res, next) => {
-  if (req.session.user) {
-    const latestUser = await getUserById(req.session.user.id);
-    if (latestUser) {
-      req.session.user = latestUser;
+  try {
+    if (req.session.user) {
+      const latestUser = await getUserById(req.session.user.id).catch(() => null);
+      if (latestUser) {
+        req.session.user = latestUser;
+      }
     }
+    res.locals.user = req.session.user || null;
+    
+    // Attempt to build site data with a fallback
+    try {
+      res.locals.siteData = await buildPublicSiteData();
+    } catch (dbError) {
+      console.error("Database error in middleware:", dbError);
+      res.locals.siteData = fallbackSiteData;
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Global middleware error:", error);
+    res.locals.siteData = fallbackSiteData;
+    next();
   }
-  res.locals.user = req.session.user || null;
-  res.locals.siteData = await buildPublicSiteData();
-  next();
 });
 
 const isAdmin = (req, res, next) => {

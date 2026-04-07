@@ -4,9 +4,14 @@ import { fileURLToPath } from "url";
 import initSqlJs from "sql.js";
 import { siteData as fallbackSiteData } from "../config/site-data.js";
 
+const isVercel = process.env.VERCEL === "1";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, "..", "public", "navigation.db");
+
+// On Vercel, use /tmp for the database as it's the only writable directory
+const dbPath = isVercel 
+  ? path.join("/tmp", "navigation.db")
+  : path.join(__dirname, "..", "public", "navigation.db");
 
 let dbPromise;
 let SQLPromise;
@@ -52,16 +57,31 @@ const runStatement = (db, query, params = {}) => {
 };
 
 export const persistDb = async (db) => {
-  const data = db.export();
-  await fs.writeFile(dbPath, Buffer.from(data));
+  try {
+    const data = db.export();
+    await fs.writeFile(dbPath, Buffer.from(data));
+  } catch (error) {
+    console.error("Failed to persist database:", error);
+    // On Vercel, this might fail if we hit limits, but we should continue
+  }
 };
 
 const getSql = async () => {
   if (!SQLPromise) {
-    const distPath = path.join(__dirname, "..", "node_modules", "sql.js", "dist");
-    SQLPromise = initSqlJs({
-      locateFile: (file) => path.join(distPath, file),
-    });
+    try {
+      // In Vercel and some environments, node_modules is packaged differently
+      const distPath = path.join(process.cwd(), "node_modules", "sql.js", "dist");
+      
+      SQLPromise = initSqlJs({
+        locateFile: (file) => {
+          const wasmPath = path.join(distPath, file);
+          return wasmPath;
+        },
+      });
+    } catch (error) {
+      console.error("Failed to initialize SQL.js:", error);
+      throw error;
+    }
   }
 
   return SQLPromise;
@@ -328,20 +348,29 @@ const seedDefaults = (db) => {
 export const getDb = async () => {
   if (!dbPromise) {
     dbPromise = (async () => {
-      const SQL = await getSql();
-      let fileBuffer;
-
       try {
-        fileBuffer = await fs.readFile(dbPath);
-      } catch {
-        fileBuffer = null;
-      }
+        const SQL = await getSql();
+        let fileBuffer;
 
-      const db = fileBuffer ? new SQL.Database(fileBuffer) : new SQL.Database();
-      initializeSchema(db);
-      seedDefaults(db);
-      await persistDb(db);
-      return db;
+        try {
+          fileBuffer = await fs.readFile(dbPath);
+        } catch {
+          fileBuffer = null;
+        }
+
+        const db = fileBuffer ? new SQL.Database(fileBuffer) : new SQL.Database();
+        initializeSchema(db);
+        seedDefaults(db);
+        
+        // Only persist if we're not in a purely read-only state
+        await persistDb(db);
+        
+        return db;
+      } catch (error) {
+        console.error("Critical error in getDb:", error);
+        dbPromise = null; // Reset promise to allow retry
+        throw error;
+      }
     })();
   }
 
